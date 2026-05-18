@@ -98,11 +98,12 @@
         .pos-table td { padding: 8px; border-bottom: 1px solid #e0e0e0; }
         .pos-table tr:nth-child(even) { background-color: #f9fbfd; }
         .pos-table tr.selected-row { background-color: #4a82c3 !important; color: white; }
-        .pos-table tr.return-row { background-color: var(--return-yellow); }
+        .pos-table tr.return-row { background-color: var(--return-yellow); color: #856404; }
 
         .table-actions { display: flex; gap: 10px; margin: 10px 0; }
         .action-btn { background: linear-gradient(to bottom, #ffffff, #e0e0e0); border: 1px solid #ababab; padding: 6px 12px; font-size: 13px; font-weight: bold; cursor: pointer; border-radius: 3px; display: flex; gap: 5px; align-items: center; }
         .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-shortcut { font-size: 11px; color: #666; font-weight: normal; background: #fff; border: 1px solid #ccc; padding: 1px 3px; border-radius: 2px; }
 
         .summary-box { display: grid; grid-template-columns: 1fr 1fr; border-top: 2px solid #a4bed9; padding-top: 10px; gap: 20px; }
         .info-pane { font-size: 12px; color: #555; line-height: 1.4; }
@@ -110,7 +111,7 @@
         .totals-row { display: flex; justify-content: space-between; width: 290px; font-size: 14px; }
         .totals-row.grand-total { background-color: var(--total-green); padding: 8px; border: 1px solid #a2cfa2; border-radius: 3px; font-size: 20px; font-weight: bold; margin-top: 5px; cursor: pointer; }
 
-        .f-keys-bar { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; background-color: #cbdcf2; padding: 8px; border-top: 1px solid #a4bed9; }
+        .f-keys-bar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; background-color: #cbdcf2; padding: 8px; border-top: 1px solid #a4bed9; }
         .f-btn { background: linear-gradient(to bottom, #ffffff, #dcdcdc); border: 1px solid #999; border-radius: 3px; padding: 8px; text-align: left; cursor: pointer; }
         .f-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .f-btn .f-num { font-weight: bold; display: block; font-size: 13px; color: #222; }
@@ -157,7 +158,6 @@
         }
         .lock-hint { font-size: 11px; color: #bbb; margin-top: 10px; display: block; }
 
-        /* KORTTIMAKSUPÄÄTE - DYNAMICS TEEMA */
         .terminal-dialog {
             background-color: var(--terminal-bg); border: 3px solid var(--win-blue-dark);
             width: 340px; padding: 20px; border-radius: 6px; color: #333;
@@ -171,7 +171,6 @@
         .terminal-screen.processing { background-color: #eaf4ff; color: var(--win-blue-dark); }
         .terminal-screen.success { background-color: var(--total-green); color: #1e5a1e; }
 
-        /* RAPORTTINÄKYMÄ */
         .report-paper {
             background-color: var(--report-bg); color: #111; font-family: monospace;
             padding: 20px; border: 1px solid #ccc; box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
@@ -239,7 +238,7 @@
                 <div id="post-sale-info-zone"></div>
                 <div class="transaction-header">
                     <span id="live-date">-</span>
-                    <span id="pos-mode-status" style="color:blue;">NORMAALI MYYNTI</span>
+                    <span id="pos-mode-status" style="color:green; font-weight:bold;">NORMAALI MYYNTI</span>
                 </div>
 
                 <div class="table-container">
@@ -261,6 +260,7 @@
                 <div class="table-actions">
                     <button class="action-btn" id="btn-act-remove" onclick="removeSelected()">Poista rivi <span class="btn-shortcut">Delete</span></button>
                     <button class="action-btn" id="btn-act-qty" onclick="openQtyModal()">Muuta kpl <span class="btn-shortcut">F9</span></button>
+                    <button class="action-btn" id="btn-act-price" onclick="openPriceOverrideModal()">Muuta hinta <span class="btn-shortcut">F4</span></button>
                 </div>
 
                 <div class="summary-box">
@@ -284,6 +284,7 @@
         <div class="f-keys-bar">
             <button class="f-btn" onclick="document.getElementById('search-input').focus()"><span class="f-num">F2</span><span class="f-text">Haku</span></button>
             <button class="f-btn" onclick="changeModule('members'); prepareMemberForm();"><span class="f-num">F3</span><span class="f-text">Hae Jäsen</span></button>
+            <button class="f-btn" onclick="openPriceOverrideModal()"><span class="f-num">F4</span><span class="f-text">Muuta Hinta</span></button>
             <button class="f-btn" id="f-btn-5" onclick="openCardTerminalSimulation()"><span class="f-num">F5</span><span class="f-text">Kortti</span></button>
             <button class="f-btn" id="f-btn-6" onclick="openGiftCardPayModal()"><span class="f-num">F6</span><span class="f-text">Lahjakortti</span></button>
             <button class="f-btn" id="f-btn-7" onclick="openCashModal()"><span class="f-num">F7</span><span class="f-text">Käteinen</span></button>
@@ -339,7 +340,7 @@
 
     <div id="module-members" class="module-content">
         <div class="mgmt-container">
-            <h2>JäsenREKISTERI</h2>
+            <h2>Jäsenrekisteri</h2>
             <div class="mgmt-grid">
                 <div class="mgmt-form">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -470,12 +471,36 @@
     <div class="win-modal" id="modal-return-setup">
         <div class="win-dialog">
             <div class="dialog-header"><span>Hae palautettava kuitti</span><button class="dialog-close" onclick="closeModal('modal-return-setup')">X</button></div>
-            <div class="dialog-body"><input type="text" id="input-return-receipt-id" placeholder="Esim. 2026-1001"></div>
+            <div class="dialog-body">
+                <label>Syötä haettava kuitin numero:</label>
+                <input type="text" id="input-return-receipt-id" placeholder="Esim. 2026-1001">
+            </div>
             <div class="dialog-footer"><button class="dialog-btn" onclick="closeModal('modal-return-setup')">Peruuta</button><button class="dialog-btn primary" onclick="submitReturnSetup()">Lataa kuitti</button></div>
         </div>
     </div>
 
-    <div class="win-modal" id="modal-qty"><div class="win-dialog"><div class="dialog-header"><span>Muuta kpl</span><button class="dialog-close" onclick="closeModal('modal-qty')">X</button></div><div class="dialog-body"><input type="number" id="input-qty" value="1" min="1"></div><div class="dialog-footer"><button class="dialog-btn" onclick="closeModal('modal-qty')">Peruuta</button><button class="dialog-btn primary" onclick="submitQty()">Ok</button></div></div></div>
+    <div class="win-modal" id="modal-qty">
+        <div class="win-dialog">
+            <div class="dialog-header"><span>Muuta kpl</span><button class="dialog-close" onclick="closeModal('modal-qty')">X</button></div>
+            <div class="dialog-body">
+                <label>Syötä uusi kappalemäärä (syötä miinusmerkki - jos palautus):</label>
+                <input type="number" id="input-qty" value="1">
+            </div>
+            <div class="dialog-footer"><button class="dialog-btn" onclick="closeModal('modal-qty')">Peruuta</button><button class="dialog-btn primary" onclick="submitQty()">Ok</button></div>
+        </div>
+    </div>
+
+    <div class="win-modal" id="modal-price-override">
+        <div class="win-dialog">
+            <div class="dialog-header"><span>Muuta tuotteen yksikköhinta</span><button class="dialog-close" onclick="closeModal('modal-price-override')">X</button></div>
+            <div class="dialog-body">
+                <label>Uusi hinta tälle tuoteriville (€):</label>
+                <input type="number" id="input-override-price" step="0.01" min="0.00">
+            </div>
+            <div class="dialog-footer"><button class="dialog-btn" onclick="closeModal('modal-price-override')">Peruuta</button><button class="dialog-btn primary" onclick="submitPriceOverride()">Päivitä hinta</button></div>
+        </div>
+    </div>
+
     <div class="win-modal" id="modal-info"><div class="win-dialog"><div class="dialog-header"><span id="info-title">Info</span><button class="dialog-close" onclick="closeModal('modal-info')">X</button></div><div class="dialog-body" id="info-body" style="white-space:pre-wrap;"></div><div class="dialog-footer"><button class="dialog-btn primary" onclick="closeModal('modal-info')">OK</button></div></div></div>
 
 </div>
@@ -487,7 +512,6 @@
 
     let currentCashRoundedTotal = 0;
 
-    // Tietokannan alustukset
     function getDb(key, defaultVal) {
         let data = localStorage.getItem(key);
         return data ? JSON.parse(data) : (localStorage.setItem(key, JSON.stringify(defaultVal)), defaultVal);
@@ -504,18 +528,34 @@
         "1001": { name: "Matti Malli", phone: "040111222" }
     };
 
+    // Alustetaan historiadataan esimerkkikuitti, jotta palautusta voi testata heti
+    let initialSalesLog = [
+        {
+            receiptId: "2026-1001",
+            terminal: "POS-TEST",
+            cashier: "Oliver Cox",
+            total: 11.27,
+            method: "Käteinen",
+            timestamp: new Date().toISOString(),
+            items: [
+                { id: "10011", name: "Aamukahvi Blend", qty: 1, price: 9.44, discountObj: { type: 'percent', value: 0 } },
+                { id: "10101", name: "Kahvisuodattimet", qty: 1, price: 1.83, discountObj: { type: 'percent', value: 0 } }
+            ]
+        }
+    ];
+
     let cashierDb = getDb('pos_cashiers', defaultCashiers);
     let productDb = getDb('pos_products', defaultProducts);
     let memberDb = getDb('pos_members', defaultMembers);
     let giftCardRegistry = getDb('pos_giftcards', {});
+    let salesLog = getDb('pos_sales_log', initialSalesLog);
 
-    // Synkronointi
     window.addEventListener('storage', (e) => {
         if (e.key === 'pos_cashiers') { cashierDb = JSON.parse(e.newValue); renderCashierTable(); }
         if (e.key === 'pos_products') { productDb = JSON.parse(e.newValue); renderMgmtTable(); renderCart(); }
         if (e.key === 'pos_members') { memberDb = JSON.parse(e.newValue); renderMemberTable(); }
         if (e.key === 'pos_giftcards') { giftCardRegistry = JSON.parse(e.newValue); }
-        if (e.key === 'pos_sales_log' || e.key === 'pos_terminal_floats') { if(document.getElementById('module-reports').classList.contains('active-module')) buildReportsView(); }
+        if (e.key === 'pos_sales_log') { salesLog = JSON.parse(e.newValue); if(document.getElementById('module-reports').classList.contains('active-module')) buildReportsView(); }
     });
 
     let activeCashier = null;
@@ -527,16 +567,15 @@
     let lastTransactionPaymentDetails = {};
     let activeCustomer = { name: "Yleisasiakas", id: "Yleinen", isMember: false };
     let isPostSaleState = false;
-    let activeReceiptId = "2026-1001";
+    let activeReceiptId = "2026-1002";
 
     function updateCurrentReceiptId() {
-        let counter = getDb('pos_receipt_counter', 1001);
+        let counter = getDb('pos_receipt_counter', 1002);
         activeReceiptId = "2026-" + counter;
         updateCustomerPaneDisplay();
     }
     updateCurrentReceiptId();
 
-    // KIRJAUTUMINEN & LUKITUS
     function lockPOS() {
         activeCashier = null;
         document.getElementById('pos-lock-screen').style.display = 'flex';
@@ -553,13 +592,13 @@
         if (e.key === 'Enter') {
             let pinInput = document.getElementById('lock-pin-input').value.trim();
             let floatInput = parseFloat(document.getElementById('init-float-input').value);
-            let foundCashier = null;
 
             if(isNaN(floatInput) || floatInput < 0) {
                 document.getElementById('login-error-msg').innerText = "SYÖTÄ POHJAKASSA!";
                 return;
             }
 
+            let foundCashier = null;
             cashierDb = getDb('pos_cashiers', defaultCashiers);
             for (let id in cashierDb) {
                 if (cashierDb[id].pin === pinInput) { foundCashier = cashierDb[id]; break; }
@@ -622,7 +661,6 @@
         if(modId === 'pos') document.getElementById('search-input').focus();
     }
 
-    // KASSAHAUT JA OSTOSKORI
     function handleSearch(e) {
         if (e.key === 'Enter') {
             checkAndResetPostSale();
@@ -647,12 +685,13 @@
         }
     }
 
-    function addToCart(id, name, price, isReturn = false) {
-        let existing = cart.find(item => item.id === id && item.discountObj.value === 0 && item.isReturn === isReturn);
+    function addToCart(id, name, price, qty = 1) {
+        // Sallitaan ostoskoriin myös miinusmerkkiset tuotteet
+        let existing = cart.find(item => item.id === id && item.discountObj.value === 0 && (item.qty > 0 === qty > 0));
         if (existing && id !== "99999" && !id.startsWith(GC_PREFIX)) {
-            existing.qty++;
+            existing.qty += qty;
         } else {
-            cart.push({ id: id, name: name, qty: 1, price: price, discountObj: { type: 'percent', value: 0 }, isReturn: isReturn });
+            cart.push({ id: id, name: name, qty: qty, price: price, discountObj: { type: 'percent', value: 0 } });
         }
         selectedRowIndex = cart.length - 1;
         renderCart();
@@ -664,9 +703,8 @@
         let subtotal = 0, totalDiscounts = 0;
 
         cart.forEach((item, idx) => {
-            let rowMult = item.isReturn ? -1 : 1;
-            let itemOriginalTotal = item.price * item.qty * rowMult;
-            let itemDiscount = item.discountObj.value > 0 ? (item.discountObj.type === 'percent' ? itemOriginalTotal * (item.discountObj.value / 100) : item.discountObj.value * item.qty * rowMult) : 0;
+            let itemOriginalTotal = item.price * item.qty;
+            let itemDiscount = item.discountObj.value > 0 ? (item.discountObj.type === 'percent' ? itemOriginalTotal * (item.discountObj.value / 100) : item.discountObj.value * item.qty) : 0;
             let itemRowTotal = itemOriginalTotal - itemDiscount;
             
             subtotal += itemOriginalTotal;
@@ -674,12 +712,12 @@
 
             const tr = document.createElement('tr');
             if (idx === selectedRowIndex) tr.className = 'selected-row';
-            if (item.isReturn) tr.classList.add('return-row');
+            if (item.qty < 0) tr.classList.add('return-row');
             tr.onclick = () => { if(!isPostSaleState) { selectedRowIndex = idx; renderCart(); } };
 
             tr.innerHTML = `
                 <td>${item.id}</td>
-                <td>${item.name} ${item.isReturn ? '(PALAUTUS)' : ''}</td>
+                <td>${item.name}</td>
                 <td>${item.qty}</td>
                 <td>${item.price.toFixed(2)} €</td>
                 <td>${item.discountObj.value > 0 ? (item.discountObj.type === 'percent' ? item.discountObj.value+'%' : item.discountObj.value.toFixed(2)+'€') : '0,00 €'}</td>
@@ -707,6 +745,8 @@
 
     function clearCart() {
         cart = []; selectedRowIndex = -1; renderCart();
+        document.getElementById('pos-mode-status').innerText = "NORMAALI MYYNTI";
+        document.getElementById('pos-mode-status').style.color = "green";
     }
 
     function openQtyModal() {
@@ -718,9 +758,26 @@
 
     function submitQty() {
         let q = parseInt(document.getElementById('input-qty').value);
-        if (!isNaN(q) && q > 0 && selectedRowIndex > -1) {
+        if (!isNaN(q) && selectedRowIndex > -1) {
             cart[selectedRowIndex].qty = q;
             closeModal('modal-qty');
+            renderCart();
+        }
+    }
+
+    // LENNOSSA TUOTEHINNAN MUUTOS (F4)
+    function openPriceOverrideModal() {
+        if (selectedRowIndex > -1) {
+            document.getElementById('input-override-price').value = cart[selectedRowIndex].price.toFixed(2);
+            openModal('modal-price-override');
+        }
+    }
+
+    function submitPriceOverride() {
+        let newPrice = parseFloat(document.getElementById('input-override-price').value.replace(',', '.'));
+        if (!isNaN(newPrice) && newPrice >= 0 && selectedRowIndex > -1) {
+            cart[selectedRowIndex].price = newPrice;
+            closeModal('modal-price-override');
             renderCart();
         }
     }
@@ -746,21 +803,19 @@
         renderCart();
     }
 
-    // MAKSUT LOGIIKKA & PYÖRISTYKSET
     function roundToFiveCents(amount) {
         return Math.round(amount * 20) / 20;
     }
 
     function openCashModal() {
-        if (amountDue <= 0 || cart.length === 0) return;
+        if (cart.length === 0) return;
         currentCashRoundedTotal = roundToFiveCents(amountDue);
         
         document.getElementById('cash-due-amount').innerText = amountDue.toFixed(2) + ' €';
         document.getElementById('cash-rounded-amount').innerText = currentCashRoundedTotal.toFixed(2) + ' €';
-        document.getElementById('input-cash-received').value = '';
-        document.getElementById('cash-change-due').innerText = '0,00 €';
-        document.getElementById('btn-confirm-cash').disabled = true;
+        document.getElementById('input-cash-received').value = Math.abs(currentCashRoundedTotal).toFixed(2);
         
+        calculateChange();
         openModal('modal-cash');
         setTimeout(() => document.getElementById('input-cash-received').focus(), 120);
     }
@@ -769,13 +824,18 @@
         let received = parseFloat(document.getElementById('input-cash-received').value.replace(',', '.'));
         let confirmBtn = document.getElementById('btn-confirm-cash');
         
-        if (!isNaN(received) && received >= currentCashRoundedTotal) {
-            let change = received - currentCashRoundedTotal;
-            document.getElementById('cash-change-due').innerText = change.toFixed(2) + " €";
-            confirmBtn.disabled = false;
+        if (currentCashRoundedTotal >= 0) {
+            if (!isNaN(received) && received >= currentCashRoundedTotal) {
+                document.getElementById('cash-change-due').innerText = (received - currentCashRoundedTotal).toFixed(2) + " €";
+                confirmBtn.disabled = false;
+            } else {
+                document.getElementById('cash-change-due').innerText = "0,00 €";
+                confirmBtn.disabled = true;
+            }
         } else {
-            document.getElementById('cash-change-due').innerText = "0,00 €";
-            confirmBtn.disabled = true;
+            // Palautustilanteessa (Negatiivinen summa korissa) kassasta annetaan rahaa ulos
+            document.getElementById('cash-change-due').innerText = Math.abs(currentCashRoundedTotal).toFixed(2) + " € (Ulos)";
+            confirmBtn.disabled = false;
         }
     }
 
@@ -783,38 +843,38 @@
         let received = parseFloat(document.getElementById('input-cash-received').value.replace(',', '.'));
         closeModal('modal-cash');
         lastTransactionPaymentDetails = { 
-            method: "Käteinen", 
-            change: received - currentCashRoundedTotal,
+            method: currentCashRoundedTotal >= 0 ? "Käteinen" : "Palautushyvitys (Käteinen)", 
+            change: currentCashRoundedTotal >= 0 ? (received - currentCashRoundedTotal) : 0,
             loggedSum: currentCashRoundedTotal
         };
         finalizeTransaction();
     }
 
     function openCardTerminalSimulation() {
-        if (amountDue <= 0 || cart.length === 0) return;
+        if (cart.length === 0) return;
         
         document.getElementById('term-screen-bg').className = "terminal-screen processing";
-        document.getElementById('term-line-1').innerText = "VARMENNETAAN PANKKIIN...";
-        document.getElementById('term-line-2').innerText = amountDue.toFixed(2) + " EUR";
-        document.getElementById('term-line-3').innerText = "Lue kortti etänä...";
+        document.getElementById('term-line-1').innerText = amountDue >= 0 ? "VARMENNETAAN PANKKIIN..." : "HYVITYS KORTILLE...";
+        document.getElementById('term-line-2').innerText = Math.abs(amountDue).toFixed(2) + " EUR";
+        document.getElementById('term-line-3').innerText = "Odotetaan päätettä...";
         openModal('modal-card-terminal');
 
         setTimeout(() => {
-            document.getElementById('term-line-1').innerText = "YHDYSKUNTA HYVÄKSYTTY";
+            document.getElementById('term-line-1').innerText = "HYVÄKSYTTY / TALLENNETTU";
             document.getElementById('term-screen-bg').className = "terminal-screen success";
             
             setTimeout(() => {
                 closeModal('modal-card-terminal');
-                lastTransactionPaymentDetails = { method: "Kortti", change: 0, loggedSum: amountDue };
+                lastTransactionPaymentDetails = { method: amountDue >= 0 ? "Kortti" : "Palautushyvitys (Kortti)", change: 0, loggedSum: amountDue };
                 finalizeTransaction();
             }, 1000);
-        }, 1800);
+        }, 1500);
     }
 
     function abortCardPayment() { closeModal('modal-card-terminal'); }
 
     function processPayment(methodName) {
-        if (amountDue <= 0 || cart.length === 0) return;
+        if (cart.length === 0) return;
         lastTransactionPaymentDetails = { method: methodName, change: 0, loggedSum: amountDue };
         finalizeTransaction();
     }
@@ -824,14 +884,15 @@
         let m = lastTransactionPaymentDetails.method;
         let finalSum = lastTransactionPaymentDetails.loggedSum;
         
-        let salesLog = getDb('pos_sales_log', []);
+        salesLog = getDb('pos_sales_log', initialSalesLog);
         salesLog.push({
             receiptId: activeReceiptId,
             terminal: TERMINAL_ID,
             cashier: activeCashier ? activeCashier.name : "Tuntematon",
             total: finalSum,
             method: m,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            items: JSON.parse(JSON.stringify(cart)) // Tallennetaan kuitin tuoterivit talteen palautushakua varten
         });
         saveDb('pos_sales_log', salesLog);
 
@@ -846,21 +907,61 @@
     function checkAndResetPostSale() {
         if (isPostSaleState) {
             cart = []; selectedRowIndex = -1; totalPaidInThisTransaction = 0; amountDue = 0;
-            let counter = getDb('pos_receipt_counter', 1001);
+            let counter = getDb('pos_receipt_counter', 1002);
             saveDb('pos_receipt_counter', counter + 1);
             updateCurrentReceiptId();
             isPostSaleState = false;
             document.getElementById('post-sale-info-zone').innerHTML = '';
+            document.getElementById('pos-mode-status').innerText = "NORMAALI MYYNTI";
+            document.getElementById('pos-mode-status').style.color = "green";
             activeCustomer = { name: "Yleisasiakas", id: "Yleinen", isMember: false };
             updateCustomerPaneDisplay();
             renderCart();
         }
     }
 
+    // PALAUTUSTILA (HAETAAN VANHA KUITTI JA MUUTETAAN RIVIT MIINUKSELLE)
+    function openReturnModeModal() { 
+        openModal('modal-return-setup'); 
+    }
+
+    function submitReturnSetup() {
+        let rid = document.getElementById('input-return-receipt-id').value.trim();
+        if(!rid) return;
+
+        salesLog = getDb('pos_sales_log', initialSalesLog);
+        // Etsitään kuitin tiedot tietokannasta
+        let foundReceipt = salesLog.find(s => s.receiptId === rid);
+
+        if (foundReceipt && foundReceipt.items) {
+            cart = [];
+            // Tuodaan tuotteet ostoskoriin kääntäen kpl-määrät negatiivisiksi
+            foundReceipt.items.forEach(item => {
+                cart.push({
+                    id: item.id,
+                    name: item.name,
+                    qty: -Math.abs(item.qty), // Pakotetaan miinusmerkki
+                    price: item.price,
+                    discountObj: item.discountObj || { type: 'percent', value: 0 }
+                });
+            });
+
+            document.getElementById('pos-mode-status').innerText = "PALAUTUSTILA (" + rid + ")";
+            document.getElementById('pos-mode-status').style.color = "red";
+            selectedRowIndex = cart.length - 1;
+            renderCart();
+            closeModal('modal-return-setup');
+            document.getElementById('search-input').focus();
+        } else {
+            closeModal('modal-return-setup');
+            openInfoModal("Virhe", "Kuittia numeroilla '" + rid + "' ei löytynyt järjestelmästä.");
+        }
+    }
+
     // RAPORTIT
     function buildReportsView() { renderZHistoryTable(); }
     function printReport(type) {
-        let salesLog = getDb('pos_sales_log', []);
+        salesLog = getDb('pos_sales_log', initialSalesLog);
         let floats = getDb('pos_terminal_floats', {});
         let now = new Date(), dateStr = now.toLocaleString('fi-FI');
         let reportText = "";
@@ -890,7 +991,7 @@
             let zHistory = getDb('pos_z_history', []);
             zHistory.push({ timestamp: dateStr, user: activeCashier?activeCashier.name:'System', total: total.toFixed(2) + " €" });
             saveDb('pos_z_history', zHistory);
-            saveDb('pos_sales_log', []);
+            saveDb('pos_sales_log', initialSalesLog); // Jätetään testikuitti pohjalle
             saveDb('pos_terminal_floats', {});
             clearCart(); renderZHistoryTable();
         }
@@ -927,19 +1028,14 @@
         saveDb('pos_products', productDb); renderMgmtTable();
     }
 
-    // JÄSENREKISTERI (AUTOMAATTISELLA ID-LASKURILLA JA TYHJENNYKSELLÄ)
+    // JÄSENREKISTERI
     function prepareMemberForm() {
         memberDb = getDb('pos_members', defaultMembers);
-        
-        // Etsitään suurin olemassa oleva ID numeroista ja lisätään siihen 1
         let maxId = 1000;
         for (let id in memberDb) {
             let numericId = parseInt(id);
-            if (!isNaN(numericId) && numericId > maxId) {
-                maxId = numericId;
-            }
+            if (!isNaN(numericId) && numericId > maxId) maxId = numericId;
         }
-        
         document.getElementById('mem-id').value = maxId + 1;
         document.getElementById('mem-name').value = '';
         document.getElementById('mem-phone').value = '';
@@ -956,20 +1052,14 @@
     }
 
     function saveMemberToDb() {
-        let idField = document.getElementById('mem-id');
-        let nameField = document.getElementById('mem-name');
-        let phoneField = document.getElementById('mem-phone');
-
-        let id = idField.value.trim();
-        let name = nameField.value.trim();
-        let phone = phoneField.value.trim();
+        let id = document.getElementById('mem-id').value.trim();
+        let name = document.getElementById('mem-name').value.trim();
+        let phone = document.getElementById('mem-phone').value.trim();
 
         if (id && name) {
             memberDb = getDb('pos_members', defaultMembers);
             memberDb[id] = { name: name, phone: phone };
             saveDb('pos_members', memberDb);
-            
-            // Tyhjennetään kentät ja alustetaan seuraava ID automaattisesti valmiiksi
             prepareMemberForm();
         } else {
             openInfoModal("Virhe", "Anna vähintään nimi asiakkaalle.");
@@ -1006,7 +1096,6 @@
         }
     }
 
-    // MUUT KASSATOIMINNOT
     function openGiftCardModal() {
         let code = GC_PREFIX + Math.floor(1000 + Math.random() * 9000);
         document.getElementById('generated-gc-id').value = code; openModal('modal-giftcard-create');
@@ -1016,44 +1105,52 @@
         let val = parseFloat(document.getElementById('input-gc-create-val').value);
         if(!isNaN(val) && val > 0) { addToCart(code, `Lahjakortti ${code}`, val); closeModal('modal-giftcard-create'); }
     }
-    function openGiftCardPayModal() { if(amountDue>0) openModal('modal-giftcard-pay'); }
+    function openGiftCardPayModal() { openModal('modal-giftcard-pay'); }
     function submitGiftCardPayment() {
         let code = document.getElementById('input-pay-gc-suffix').value.trim();
         if(code) { closeModal('modal-giftcard-pay'); processPayment("Lahjakortti: " + code); }
-    }
-    function openReturnModeModal() { openModal('modal-return-setup'); }
-    function submitReturnSetup() {
-        let rid = document.getElementById('input-return-receipt-id').value.trim();
-        if(rid) {
-            closeModal('modal-return-setup');
-            document.getElementById('pos-mode-status').innerText = "PALAUTUSTILA";
-            document.getElementById('pos-mode-status').style.color = "red";
-            addToCart("PALAUTUS", "Palautushyvitys ("+rid+")", amountDue > 0 ? amountDue : 10.00, true);
-        }
     }
 
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
     function openInfoModal(t,b){ document.getElementById('info-title').innerText=t; document.getElementById('info-body').innerText=b; openModal('modal-info'); }
 
-    // PIKANÄPPÄIMET
+    // KAAPATAAN CTRL + NUMEROT JA STRG-NÄPPÄIMISTÖ PIKANÄPPÄIMIKSI
     window.addEventListener('keydown', (e) => {
         if (!activeCashier) return;
-        if (['F2', 'F3', 'F5', 'F6', 'F7', 'F8', 'F9', 'Delete'].includes(e.key)) e.preventDefault();
-        if (e.key === 'Delete') removeSelected();
-        if (e.key === 'F2') document.getElementById('search-input').focus();
-        if (e.key === 'F3') { changeModule('members'); prepareMemberForm(); }
-        if (e.key === 'F5') openCardTerminalSimulation();
-        if (e.key === 'F6') openGiftCardPayModal();
-        if (e.key === 'F7') openCashModal();
-        if (e.key === 'F8') processPayment('Lasku');
-        if (e.key === 'F9') openQtyModal();
+
+        // Estetään selaimen omat Ctrl+sivutoiminnot ja ajetaan ne kassan kautta
+        if (e.ctrlKey && ['3', '4', '5', '6', '7', '0', 'f', 'F', 'r', 'R'].includes(e.key)) {
+            e.preventDefault();
+            if (e.key === '3') openDiscountModal('row');
+            if (e.key === '4') openDiscountModal('total');
+            if (e.key === '5') clearCart();
+            if (e.key === '6') openReturnModeModal();
+            if (e.key === '7') clearCart();
+            if (e.key === '0') openGiftCardModal();
+            if (e.key.toLowerCase() === 'f') openFloatAdjustmentModal();
+            if (e.key.toLowerCase() === 'r') { changeModule('reports'); buildReportsView(); }
+            return;
+        }
+
+        // Funktionäppäimet F-palkista
+        if (['F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'Delete'].includes(e.key)) {
+            e.preventDefault();
+            if (e.key === 'Delete') removeSelected();
+            if (e.key === 'F2') document.getElementById('search-input').focus();
+            if (e.key === 'F3') { changeModule('members'); prepareMemberForm(); }
+            if (e.key === 'F4') openPriceOverrideModal();
+            if (e.key === 'F5') openCardTerminalSimulation();
+            if (e.key === 'F6') openGiftCardPayModal();
+            if (e.key === 'F7') openCashModal();
+            if (e.key === 'F8') processPayment('Lasku');
+            if (e.key === 'F9') openQtyModal();
+        }
     });
 
     setInterval(() => { document.getElementById('live-time').innerText = new Date().toLocaleTimeString('fi-FI', {hour:'2-digit', minute:'2-digit'}); }, 1000);
     document.getElementById('live-date').innerText = new Date().toLocaleDateString('fi-FI', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
     
-    // Käynnistys lukitustilaan
     lockPOS();
 </script>
 
